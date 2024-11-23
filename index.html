@@ -1,60 +1,99 @@
-document.getElementById('simulasi-form').addEventListener('submit', function (e) {
-  e.preventDefault();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi Judi</title>
+</head>
+<body>
+  <h1>Simulasi Judi</h1>
+  <form id="simulasi-form">
+    <label>Uang Awal: <input type="number" id="player_balance" required></label><br>
+    <label>Biaya Per Putaran: <input type="number" id="bet_amount" required></label><br>
+    <label>Peluang Menang (%): <input type="number" id="win_probability" required></label><br>
+    <label>Jumlah Putaran: <input type="number" id="total_rounds" required></label><br>
+    <button type="submit">Mulai Simulasi</button>
+  </form>
+  <div id="hasil-simulasi"></div>
 
-  // Ambil input dari pengguna
-  let player_balance = parseFloat(document.getElementById('player_balance').value);
-  let bet_amount = parseFloat(document.getElementById('bet_amount').value);
-  let win_probability = parseFloat(document.getElementById('win_probability').value) / 100;
-  let total_rounds = parseInt(document.getElementById('total_rounds').value);
+  <script>
+    document.getElementById('simulasi-form').addEventListener('submit', function (e) {
+      e.preventDefault();
 
-  // Validasi input
-  if (isNaN(player_balance) || isNaN(bet_amount) || isNaN(win_probability) || isNaN(total_rounds)) {
-    alert("Harap masukkan angka yang valid di semua input.");
-    return;
-  }
+      // Ambil input dari pengguna
+      let player_balance = parseFloat(document.getElementById('player_balance').value);
+      let bet_amount = parseFloat(document.getElementById('bet_amount').value);
+      let win_probability = parseFloat(document.getElementById('win_probability').value) / 100;
+      let total_rounds = parseInt(document.getElementById('total_rounds').value);
 
-  if (player_balance <= 0 || bet_amount <= 0 || win_probability <= 0 || win_probability > 1 || total_rounds <= 0) {
-    alert("Harap pastikan semua input bernilai positif dan peluang menang antara 0-100.");
-    return;
-  }
+      // Validasi input
+      if (isNaN(player_balance) || isNaN(bet_amount) || isNaN(win_probability) || isNaN(total_rounds)) {
+        alert("Harap masukkan angka yang valid di semua input.");
+        return;
+      }
+      if (player_balance <= 0 || bet_amount <= 0 || win_probability <= 0 || win_probability > 1 || total_rounds <= 0) {
+        alert("Harap pastikan semua input bernilai positif dan peluang menang antara 0-100.");
+        return;
+      }
 
-  // Log untuk debugging
-  console.log("Input valid. Memulai simulasi...");
+      let wins = 0;
+      let losses = 0;
+      let hasilSimulasi = "";
 
-  let wins = 0;
-  let losses = 0;
-  let hasilSimulasi = "<table><tr><th>Putaran</th><th>Hasil</th><th>Saldo</th></tr>";
+      // Simulasi permainan
+      for (let round = 1; round <= total_rounds; round++) {
+        if (player_balance < bet_amount) {
+          hasilSimulasi += `
+            <tr>
+              <td>${round}</td>
+              <td>Kalah (Uang Habis)</td>
+              <td>${player_balance}</td>
+            </tr>`;
+          break;
+        }
 
-  // Simulasi permainan
-  for (let round = 1; round <= total_rounds; round++) {
-    if (player_balance < bet_amount) {
-      hasilSimulasi += `<tr><td>${round}</td><td>Kalah (Uang Habis)</td><td>${player_balance}</td></tr>`;
-      break;
-    }
+        player_balance -= bet_amount; // Kurangi saldo
+        if (Math.random() < win_probability) { // Menang jika random < peluang menang
+          const reward = bet_amount * 5; // Hadiah 5x
+          player_balance += reward;
+          wins++;
+          hasilSimulasi += `
+            <tr>
+              <td>${round}</td>
+              <td>Menang (+${reward})</td>
+              <td>${player_balance}</td>
+            </tr>`;
+        } else {
+          losses++;
+          hasilSimulasi += `
+            <tr>
+              <td>${round}</td>
+              <td>Kalah</td>
+              <td>${player_balance}</td>
+            </tr>`;
+        }
+      }
 
-    player_balance -= bet_amount; // Kurangi saldo
-    if (Math.random() < win_probability) { // Menang jika random < peluang menang
-      const reward = bet_amount * 5; // Hadiah 5x
-      player_balance += reward;
-      wins++;
-      hasilSimulasi += `<tr><td>${round}</td><td>Menang (+${reward})</td><td>${player_balance}</td></tr>`;
-    } else {
-      losses++;
-      hasilSimulasi += `<tr><td>${round}</td><td>Kalah</td><td>${player_balance}</td></tr>`;
-    }
-  }
+      // Tampilkan hasil simulasi
+      hasilSimulasi = `
+        <table border="1">
+          <tr>
+            <th>Putaran</th>
+            <th>Hasil</th>
+            <th>Saldo</th>
+          </tr>
+          ${hasilSimulasi}
+        </table>
+        <p>Total Menang: ${wins}</p>
+        <p>Total Kalah: ${losses}</p>
+        <p>Saldo Akhir: ${player_balance}</p>
+        ${player_balance > 0
+          ? "<p>Pesan: Anda mungkin menang sekarang, tetapi dalam jangka panjang, house selalu menang.</p>"
+          : "<p>Pesan: Anda rugi besar. Judi adalah jebakan!</p>"}
+      `;
 
-  // Tampilkan hasil simulasi
-  hasilSimulasi += "</table>";
-  hasilSimulasi += `<p>Total Menang: ${wins}</p>`;
-  hasilSimulasi += `<p>Total Kalah: ${losses}</p>`;
-  hasilSimulasi += `<p>Saldo Akhir: ${player_balance}</p>`;
-  hasilSimulasi += player_balance > 0
-    ? "<p>Pesan: Anda mungkin menang sekarang, tetapi dalam jangka panjang, house selalu menang.</p>"
-    : "<p>Pesan: Anda rugi besar. Judi adalah jebakan!</p>";
-
-  document.getElementById('hasil-simulasi').innerHTML = hasilSimulasi;
-});
-
-undefined
-2VM82:22 Input valid. Memulai simulasi...
+      document.getElementById('hasil-simulasi').innerHTML = hasilSimulasi;
+    });
+  </script>
+</body>
+</html>
